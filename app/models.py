@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request,jsonify
 from app import app 
 from models import requests, attack
 from flask_sqlalchemy import SQLAlchemy
@@ -40,6 +40,85 @@ def pokemon():
             db.session.commit()
         return render_template('pokemon.html', pokemon=pokemon)
     return render_template('form.html')
+
+[17:34, 1/25/2023] Lauro: @app.route("/catch_pokemon", methods=["POST"])
+def catch_pokemon():
+    user_id = request.form["user_id"]
+    pokemon_name = request.form["pokemon_name"]
+
+    # Check if the user already has the Pokemon
+    user_collection = Collection.query.filter_by(user_id=user_id, pokemon_name=pokemon_name).first()
+
+    if user_collection is None:
+        # Check if the Pokemon has been collected by any user
+        any_user_collection = Collection.query.filter_by(pokemon_name=pokemon_name).first()
+
+        if any_user_collection is None:
+            # check if the user has less than 5 Pokemon
+            user = User.query.filter_by(id=user_id).first()
+            if user.collection_count < 5:
+                # The Pokemon has not been collected by any user, so add it to the database
+                new_pokemon = Collection(user_id=user_id, pokemon_name=pokemon_name)
+                db.session.add(new_pokemon)
+                # increment the collection_count
+                user.collection_count += 1
+                db.session.commit()
+                return jsonify({"message": "Pokemon added to collection!"})
+            else:
+                return jsonify({"message": "You can only have up to 5 Pokemon"})
+        else:
+            # The Pokemon has already been collected by another user
+            return jsonify({"message": "Pokemon already in collection."})
+    else:
+        # The user already has the Pokemon
+        return jsonify({"message": "You already have this Pokemon."})
+[17:36, 1/25/2023] Lauro: from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+
+app = Flask(_name_)
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///pokemon.db"
+db = SQLAlchemy(app)
+
+# Create the "collection" table
+class Collection(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    pokemon_name = db.Column(db.String, nullable=False)
+
+# Create the "user" table
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    collection = db.relationship("Collection", backref="user", lazy=True)
+    collection_count = db.colunm(db.integer, default=0)
+
+@app.route("/catch_pokemon", methods=["POST"])
+def catch_pokemon():
+    user_id = request.form["user_id"]
+    pokemon_name = request.form["pokemon_name"]
+
+    # Check if the user already has the Pokemon
+    user_collection = Collection.query.filter_by(user_id=user_id, pokemon_name=pokemon_name).first()
+
+    if user_collection is None:
+        # Check if the Pokemon has been collected by any user
+        any_user_collection = Collection.query.filter_by(pokemon_name=pokemon_name).first()
+
+        if any_user_collection is None:
+            # The Pokemon has not been collected by any user, so add it to the database
+            new_pokemon = Collection(user_id=user_id, pokemon_name=pokemon_name)
+            db.session.add(new_pokemon)
+            db.session.commit()
+            return jsonify({"message": "Pokemon added to collection!"})
+        else:
+            # The Pokemon has already been collected by another user
+            return jsonify({"message": "Pokemon already in collection."})
+    else:
+        # The user already has the Pokemon
+        return jsonify({"message": "You already have this Pokemon."})
+
+
+    
 
 if __name__ == '__main__':
     app.run(debug=True)
