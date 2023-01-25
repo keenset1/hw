@@ -1,0 +1,11 @@
+<h1>{{pokemon.name}}</h1>
+<p>HP: {{pokemon.stats.hp}}</p>
+<p>defense: {{pokemon.stats.defense}}</p>
+<p>attack:{{pokemon.stats.attack}}</p>
+<img src="https://pokeapi.co/'" alt="{{pokemon.name}}">
+<p>abilities:</p>
+<ul>
+{$for ability in pokemon.abilities$}
+<li>{{abilities.name}}</li>
+{$endfor$}
+</ul>

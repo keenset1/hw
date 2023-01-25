@@ -1,0 +1,14 @@
+<!-- signup.html -->
+<h1>Signup</h1>
+<form method="POST" action="">
+    {{ form.hidden_tag() }}
+    <label>First Name:</label>
+    {{ form.first_name(class="form-control") }}
+    <label>Last Name:</label>
+    {{ form.last_name(class="form-control") }}
+    <label>Email:</label>
+    {{ form.email(class="form-control") }}
+    <label>Password:</label>
+    {{ form.password(class="form-control") }}
+    <input type="submit" value="Submit">
+</form>
