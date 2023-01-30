@@ -41,7 +41,7 @@ def pokemon():
         return render_template('pokemon.html', pokemon=pokemon)
     return render_template('form.html')
 
-[17:34, 1/25/2023] Lauro: @app.route("/catch_pokemon", methods=["POST"])
+@app.route("/catch_pokemon", methods=["POST"])
 def catch_pokemon():
     user_id = request.form["user_id"]
     pokemon_name = request.form["pokemon_name"]
@@ -72,10 +72,10 @@ def catch_pokemon():
     else:
         # The user already has the Pokemon
         return jsonify({"message": "You already have this Pokemon."})
-[17:36, 1/25/2023] Lauro: from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 
-app = Flask(_name_)
+app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///pokemon.db"
 db = SQLAlchemy(app)
 
@@ -91,6 +91,8 @@ class User(db.Model):
     name = db.Column(db.String, nullable=False)
     collection = db.relationship("Collection", backref="user", lazy=True)
     collection_count = db.colunm(db.integer, default=0)
+    win = db.column(db.integer, default=0)
+    looses = db.column(db.integer, default=0)
 
 @app.route("/catch_pokemon", methods=["POST"])
 def catch_pokemon():
@@ -117,8 +119,3 @@ def catch_pokemon():
         # The user already has the Pokemon
         return jsonify({"message": "You already have this Pokemon."})
 
-
-    
-
-if __name__ == '__main__':
-    app.run(debug=True)

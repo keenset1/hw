@@ -54,3 +54,45 @@ def catch_pokemon(pokemon_name):
     else:
         flash("You have already caught this Pokemon.")
         return redirect(url_for('pokemon_collection'))
+
+
+@app.route('/remove_pokemon/<pokemon_id>')
+def remove_pokemon(pokemon_id):
+    user_pokemon = user_pokemon.query.filter_by(user_id=current_user.id, pokemon_id=pokemon_id).first()
+    if user_pokemon:
+        db.session.delete(user_pokemon)
+        db.session.commit()
+    return redirect(url_for('pokemon_collection'))
+
+@app.route('/attack/<user_id>')
+def attack(user_id):
+    target_user = user.query.get(user_id)
+    current_user_pokemon = current_user.pokemon_collection.all()
+    target_user_pokemon = target_user.pokemon_collection.all()
+    return render_template('attack.html', current_user_pokemon=current_user_pokemon, target_user_pokemon=target_user_pokemon)
+
+
+def determine_winner(user_pokemon, target_user_pokemon):
+    # determine winner based on stats, abilities, etc.
+    winner = user_pokemon
+    loser = target_user_pokemon
+    # ...
+    return winner, loser
+
+@app.route('/attack/<user_id>')
+def attack(user_id):
+    target_user = user.query.get(user_id)
+    current_user_pokemon = current_user.pokemon_collection.all()
+    target_user_pokemon = target_user.pokemon_collection.all()
+    winner, loser = determine_winner(current_user_pokemon, target_user_pokemon)
+    if winner == current_user_pokemon:
+        current_user.wins += 1
+        target_user.losses += 1
+    else:
+        current_user.losses += 1
+        target_user.wins += 1
+    db.session.commit()
+    return render_template('attack.html', winner=winner, loser=loser)
+
+if __name__ == '__main__':
+    app.run(debug=True)
